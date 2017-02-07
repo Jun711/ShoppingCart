@@ -5,11 +5,13 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressHbs = require('express-handlebars');
-
+var mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
 var index = require('./routes/index');
 // var users = require('./routes/users');
 
 var app = express();
+mongoose.connect('127.0.0.1:27017/shopping'); // the database will be created automatically if it is not there.
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
