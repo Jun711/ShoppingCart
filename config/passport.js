@@ -66,3 +66,43 @@ passport.use('local.signup', new LocalStrategy({
 		});
 	});
 }));
+
+passport.use('local.signin', new LocalStrategy({
+	usernameField: 'email',
+	passwordField: 'password',
+	passReqToCallback: true
+}, function(req, email, password, done) {
+	req.checkBody('email', 'Invalid email').notEmpty().isEmail();
+	req.checkBody('password', 'Invalid password').notEmpty();
+	
+	req.getValidationResult().then(function(result) {
+		var errors = result.array();
+		if (typeof errors !== 'undefined' && errors.length > 0) {
+			console.log("in errors");
+			var messages = [];
+			errors.forEach(function(error) {
+				messages.push(error.msg);
+			});
+			return done(null, false, req.flash('error', messages)); // no technical error, but false(not successful req)
+		}
+	});
+	// check if it already exists
+	User.findOne({'email': email}, function(err, user) {
+		if (err) {
+			return done(err);
+		}
+		// successful query(no error) but it wasn't a successful request
+		if (!user) { 
+			return done(null, false, {message: 'No user found.'});
+		} // it wasn't sucessful because the email has already been used.
+
+		// password invalid
+		if (!user.validPassword(password)) {
+			return done(null, false, {message: 'Wrong password.'});
+		}
+		// else return the found user
+		return done(null, user);
+	});
+}));
+
+
