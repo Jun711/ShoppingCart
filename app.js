@@ -52,6 +52,8 @@ app.use(express.static(path.join(__dirname, 'public')));			  // on each req no m
 app.use(function(req, res, next) {
 	res.locals.login = req.isAuthenticated(); // true OR false
 	res.locals.session = req.session; // session object
+	// because of the above line, session is available in hbs 
+	// <span class="badge">{{session.cart.totalQty}}</span>
 	next();
 });
 

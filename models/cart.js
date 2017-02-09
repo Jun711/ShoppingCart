@@ -2,6 +2,7 @@
 // we have a function to add an item to the cart
 
 module.exports = function Cart(oldCart) {
+	// then, we can pass an empty oldCart object
 	this.items = oldCart.items || {}; // oldCart items
 	this.totalQty = oldCart.totalQty || 0;
 	this.totalPrice = oldCart.totalPrice || 0;
