@@ -21,6 +21,30 @@ passport.use('local.signup', new LocalStrategy({
 	passwordField: 'password',
 	passReqToCallback: true
 }, function(req, email, password, done) {
+	req.checkBody('email', 'Invalid email').notEmpty().isEmail();
+	req.checkBody('password', 'Invalid password').notEmpty().isLength({min:4});
+	
+	// var errors = req.validationErrors(); // deprecated
+	// if (errors) {
+	// 	var messages = [];
+	// 	errors.forEach(function(error) {
+	// 		messages.push(error.msg);
+	// 	});
+	// 	return done(null, false, req.flash('error', messages)); // no technical error, but false(not successful req)
+	// }
+
+	req.getValidationResult().then(function(result) {
+		var errors = result.array();
+		if (typeof errors !== 'undefined' && errors.length > 0) {
+			console.log("in errors");
+			var messages = [];
+			errors.forEach(function(error) {
+				messages.push(error.msg);
+			});
+			return done(null, false, req.flash('error', messages)); // no technical error, but false(not successful req)
+		}
+	});
+
 	// check if it already exists
 	User.findOne({'email': email}, function(err, user) {
 		if (err) {
