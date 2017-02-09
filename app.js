@@ -12,8 +12,8 @@ var passport = require('passport');
 var flash = require('connect-flash');
 var validator = require('express-validator');
 
-var index = require('./routes/index');
-// var users = require('./routes/users');
+var routes = require('./routes/index');
+var userRoutes = require('./routes/users');
 
 var app = express();
 mongoose.connect('127.0.0.1:27017/shopping'); // the database will be created automatically if it is not there.
@@ -37,8 +37,16 @@ app.use(passport.initialize());
 app.use(passport.session()); // use session to store the user
 																	  // resave: true -> this session will be saved on the server 
 app.use(express.static(path.join(__dirname, 'public')));			  // on each req no matter there is an update or not
-																	  // saveUninitialized: true -> the session will be stored
-app.use('/', index);												  // even though it might not have been initialized 	
+																	   // saveUninitialized: true -> the session will be stored
+																	   // even though it might not have been initialized 
+
+app.use(function(req, res, next) {
+	res.locals.login = req.isAuthenticated(); // true OR false
+	next();
+});
+
+app.use('/user', userRoutes) // the ordering of these 2 routes is important																 
+app.use('/', routes);												  	
 // app.use('/users', users);
 
 // catch 404 and forward to error handler
