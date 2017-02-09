@@ -7,6 +7,8 @@ var bodyParser = require('body-parser');
 var expressHbs = require('express-handlebars');
 var mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
+var session = require('express-session');
+
 var index = require('./routes/index');
 // var users = require('./routes/users');
 
@@ -24,9 +26,11 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', index);
+app.use(session({secret: 'secretiveShoppingCart', resave: false, saveUninitialized: false})); 
+																	  // resave: true -> this session will be saved on the server 
+app.use(express.static(path.join(__dirname, 'public')));			  // on each req no matter there is an update or not
+																	  // saveUninitialized: true -> the session will be stored
+app.use('/', index);												  // even though it might not have been initialized 	
 // app.use('/users', users);
 
 // catch 404 and forward to error handler
