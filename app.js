@@ -8,12 +8,15 @@ var expressHbs = require('express-handlebars');
 var mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
 var session = require('express-session');
+var passport = require('passport');
+var flash = require('connect-flash');
 
 var index = require('./routes/index');
 // var users = require('./routes/users');
 
 var app = express();
 mongoose.connect('127.0.0.1:27017/shopping'); // the database will be created automatically if it is not there.
+require('./config/passport'); // simply load it and this will run the passport.js file
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -27,6 +30,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(session({secret: 'secretiveShoppingCart', resave: false, saveUninitialized: false})); 
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session()); // use session to store the user
 																	  // resave: true -> this session will be saved on the server 
 app.use(express.static(path.join(__dirname, 'public')));			  // on each req no matter there is an update or not
 																	  // saveUninitialized: true -> the session will be stored
