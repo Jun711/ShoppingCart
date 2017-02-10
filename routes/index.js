@@ -6,7 +6,7 @@ var Cart = require('../models/cart');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-
+	var successMsg = req.flash('success')[0];
 	Product.find(function(err, docs) {
 		let productChunks = [];
 		let chunkSize = 3;
@@ -14,7 +14,7 @@ router.get('/', function(req, res, next) {
 			productChunks.push(docs.slice(i, i + chunkSize));
 		}
 		
-		res.render('shop/index', { title: 'Shopping Cart', products: productChunks});
+		res.render('shop/index', { title: 'Shopping Cart', products: productChunks, successMsg: successMsg, noMessage: !successMsg});
 	});
 	// because of async find, we will get the wrong number of products which are mongoose objects
 	// var products = Product.find();
@@ -55,9 +55,40 @@ router.get('/checkout', function(req, res, next) {
 		return res.redirect('/shopping-cart');
 	}
 	var cart = new Cart(req.session.cart);
-	var errMsg = req.flash('error')[0];
+	// connect-flash store multiple objects in the error object array
+	// since we store only one, accessing it via [0]
+	var errMsg = req.flash('error')[0]; 
+	// pass the errMsg and noError to the view
     res.render('shop/checkout', {total: cart.totalPrice, errMsg: errMsg, noError: !errMsg});
 	//res.render('shop/checkout', {total: cart.totalPrice});
 });
+
+router.post('/checkout', function(req, res, next) {
+	if (!req.session.cart) {
+		return res.redirect('/shopping-cart');
+	}
+	var cart = new Cart(req.session.cart);
+
+	var stripe = require("stripe")(
+	  	"sk_test_XcTKpGXYKZRngphHa2XAlW0g"
+	);
+
+	stripe.charges.create({
+		  amount: cart.totalPrice * 100, // in the smallest unit
+		  currency: "cad",
+		  // stripeToken is the name of the hidden input name in the form
+		  source: req.body.stripeToken, // obtained with Stripe.js
+		  description: "Test Charge"
+	}, function(err, charge) {
+		// asynchronously called
+		if (err) {
+			req.flash('error', err.message); // linked to the errMsg in router.get('/checkout')
+			return res.redirect('/checkout');
+		}
+		req.flash('success', 'Successfully bought product!');
+		req.session.cart = null;
+		res.redirect('/');
+	});
+})
 
 module.exports = router;
