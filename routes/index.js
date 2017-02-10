@@ -47,6 +47,17 @@ router.get('/shopping-cart', function(req, res, next) {
 	}
 	let cart = new Cart(req.session.cart);
 	res.render('shop/shopping-cart', {products: cart.generateArray(), totalPrice: cart.totalPrice});
-})
+});
+
+// get the checkout view
+router.get('/checkout', function(req, res, next) {
+	if (!req.session.cart) {
+		return res.redirect('/shopping-cart');
+	}
+	var cart = new Cart(req.session.cart);
+	var errMsg = req.flash('error')[0];
+    res.render('shop/checkout', {total: cart.totalPrice, errMsg: errMsg, noError: !errMsg});
+	//res.render('shop/checkout', {total: cart.totalPrice});
+});
 
 module.exports = router;
