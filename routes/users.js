@@ -4,13 +4,28 @@ var csrf = require('csurf');
 var passport = require('passport');
 
 var routeUtil = require('./routeUtil');
+var Order = require('../models/order');
+var Cart = require('../models/cart');
 
 var csrfProtection = csrf(); // use as a middleware
 router.use(csrfProtection); // apply csrf middleware to the router to protect the routes
 							// all the routes including in this router shouldbe protected by csrfProtection
 
 router.get('/profile', routeUtil.isLoggedIn, function(req, res, next) {
-	res.render('user/profile');
+	// mongoose way to query mongodb, even though req.user has more information that needed, mongoose can handle
+	Order.find({user: req.user}, function(err, orders) {
+		if (err) {
+			return res.write('Error!');
+		}
+		let cart;
+		// iterate through each order and generate a cart object for each order
+		orders.forEach(function(order) { // iterate through each order and make the following changes
+			cart = new Cart(order.cart);
+			order.items = cart.generateArray();
+		});
+		res.render('user/profile', {orders: orders});
+	});
+	// res.render('user/profile');
 })
 
 router.get('/signout', routeUtil.isLoggedIn, function(req, res, next) {
