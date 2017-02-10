@@ -51,7 +51,7 @@ router.get('/shopping-cart', function(req, res, next) {
 });
 
 // get the checkout view
-router.get('/checkout', function(req, res, next) {
+router.get('/checkout', isLoggedIn, function(req, res, next) {
 	if (!req.session.cart) {
 		return res.redirect('/shopping-cart');
 	}
@@ -64,7 +64,7 @@ router.get('/checkout', function(req, res, next) {
 	//res.render('shop/checkout', {total: cart.totalPrice});
 });
 
-router.post('/checkout', function(req, res, next) {
+router.post('/checkout', isLoggedIn, function(req, res, next) {
 	if (!req.session.cart) {
 		return res.redirect('/shopping-cart');
 	}
@@ -105,3 +105,12 @@ router.post('/checkout', function(req, res, next) {
 })
 
 module.exports = router;
+
+ // this middleware can be used for all the routes that we want to protect
+function isLoggedIn(req, res, next) {
+	if (req.isAuthenticated()) { // is a method added by passport
+		return next();
+	}
+	req.session.oldUrl = req.url; // to keep the original routing line
+	res.redirect('/user/signin');
+}
