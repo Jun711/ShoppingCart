@@ -3,6 +3,7 @@ var router = express.Router();
 
 var Product = require('../models/product');
 var Cart = require('../models/cart');
+var Order = require('../models/order');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -85,9 +86,21 @@ router.post('/checkout', function(req, res, next) {
 			req.flash('error', err.message); // linked to the errMsg in router.get('/checkout')
 			return res.redirect('/checkout');
 		}
-		req.flash('success', 'Successfully bought product!');
-		req.session.cart = null;
-		res.redirect('/');
+		var order = new Order({
+			user: req.user, // passport stores the user object in the req
+			cart: cart,
+			address: req.body.address, // req.body is where the express store the values sent with a post req 
+			name: req.body.name,
+			paymentId: charge.id
+		});
+		order.save(function(err, result) {
+			if (err) {
+				// need to handle the errors here
+			}
+			req.flash('success', 'Successfully bought product!');
+			req.session.cart = null;
+			res.redirect('/');
+		});
 	});
 })
 
